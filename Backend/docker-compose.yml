@@ -1,0 +1,6 @@
+﻿services:
+  eatease:
+    image: eatease
+    build:
+      context: .
+      dockerfile: EatEase/Dockerfile
