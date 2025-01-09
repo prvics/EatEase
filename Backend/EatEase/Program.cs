@@ -1,15 +1,17 @@
 using EatEase.Data;
+using EatEase.Service;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddScoped<IMealPlannerService, MealPlannerService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
@@ -22,9 +24,13 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
 
 var app = builder.Build();
 
-var scope = app.Services.CreateScope();
-await DbInitializer.SeedAdminUser(scope.ServiceProvider);
-await DbInitializer.SeedMealsAndIngredients(scope.ServiceProvider);
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    ///dbContext.Database.Migrate();
+    await DbInitializer.SeedAdminUser(scope.ServiceProvider);
+    await SeedData.SeedMealsAndIngredients(scope.ServiceProvider);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
