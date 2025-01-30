@@ -5,10 +5,8 @@ namespace EatEase.Data;
 
 public static class SeedData
 {
-    public static async Task SeedMealsAndIngredients(IServiceProvider serviceProvider)
+    public static async Task SeedMealsAndIngredients(AppDbContext context)
         {
-            await using var context = serviceProvider.GetRequiredService<AppDbContext>();
-            
             Console.WriteLine("Checking if meals already exist in the database...");
             if (await context.Meals.AnyAsync())
             {
@@ -45,7 +43,18 @@ public static class SeedData
                         new Ingredient { Name = "Tomato", Quantity = 1, Unit = "piece" },
                         new Ingredient { Name = "Olive Oil", Quantity = 1, Unit = "tbsp" }
                     }
-                }
+                }, new Meal
+                {
+                    Name = "Breakfast Oatmeal",
+                    Category = "Breakfast",
+                    Instructions = "Cook oats with water or milk, and add fruits and nuts.",
+                    Ingredients = new List<Ingredient>
+                    {
+                        new Ingredient { Name = "Oats", Quantity = 1, Unit = "cup" },
+                        new Ingredient { Name = "Almonds", Quantity = 0.5, Unit = "cup" },
+                        new Ingredient { Name = "Blueberries", Quantity = 0.5, Unit = "cup" }
+                    }
+                },
             };
 
             var lunchMeals = new List<Meal>

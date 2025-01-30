@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace EatEase.Models;
 
 public class Ingredient
@@ -7,5 +9,7 @@ public class Ingredient
     public double Quantity { get; set; }
     public string Unit { get; set; }
     public int MealId { get; set; }
+    
+    [JsonIgnore]
     public Meal Meal { get; set; }
 }

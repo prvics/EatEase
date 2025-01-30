@@ -24,7 +24,10 @@ public class MealPlannerService : IMealPlannerService
             var dailyMealPlan = new DailyMealPlan { Day = day };
             foreach (var category in mealCategories)
             {
-                var randomMeal = await _context.Meals.Where(m => m.Category == category).OrderBy(m => Guid.NewGuid())
+                var randomMeal = await _context.Meals
+                    .Include(m => m.Ingredients)
+                    .Where(m => m.Category == category)
+                    .OrderBy(m => Guid.NewGuid())
                     .FirstOrDefaultAsync();
 
                 if (randomMeal != null)
@@ -45,6 +48,7 @@ public class MealPlannerService : IMealPlannerService
     public async Task<MealPlan?> RerollMealAsync(string mealCategory)
     {
         var randomMeal = await _context.Meals
+            .Include(m => m.Ingredients)
             .Where(m => m.Category == mealCategory)
             .OrderBy(m => Guid.NewGuid())
             .FirstOrDefaultAsync();
