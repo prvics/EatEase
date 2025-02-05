@@ -1,6 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using EatEase.Contracts.Requests;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+
 
 namespace EatEase.Controllers;
 
@@ -18,42 +23,74 @@ public class AccountController : ControllerBase
     }
     
     [HttpPost("register")]
-    public async Task<IActionResult> Register(string email, string password)
+    public async Task<IActionResult> Register([FromBody] RegistrationRequest request)
     {
-        var user = new IdentityUser { UserName = email, Email = email };
-        var result = await _userManager.CreateAsync(user, password);
-        if (result.Succeeded)
+        var user = new IdentityUser { UserName = request.Email, Email = request.Email };
+        var result = await _userManager.CreateAsync(user, request.Password);
+        
+        if (!result.Succeeded)
         {
-            await _signInManager.SignInAsync(user, isPersistent: false);
-            return Ok("Registration successful");
+            return BadRequest(result.Errors);
         }
-        return BadRequest(result.Errors);
+        
+        await SignInUserAsync(user);
+        return Ok(new { Message = "Registration successful" });
     }
-    
+
     [HttpPost("login")]
-    public async Task<IActionResult> Login(string email, string password)
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var result = await _signInManager.PasswordSignInAsync(email, password, isPersistent: true, lockoutOnFailure: false);
-        if (result.Succeeded)
+        var user = await _userManager.FindByEmailAsync(request.Email);
+        if (user == null)
         {
-            return Ok("Login successful");
+            return Unauthorized(new { Message = "Invalid login attempt" });
         }
-        return Unauthorized("Invalid login attempt");
+
+        var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
+        if (!result.Succeeded)
+        {
+            return Unauthorized(new { Message = "Invalid login attempt" });
+        }
+
+        await SignInUserAsync(user);
+        return Ok(new { Message = "Login successful" });
     }
-    
-    
+
+    private async Task SignInUserAsync(IdentityUser user)
+    {
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.Id),
+            new Claim(ClaimTypes.Name, user.UserName)
+        };
+
+        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var authProperties = new AuthenticationProperties
+        {
+            IsPersistent = true
+        };
+
+        await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            new ClaimsPrincipal(claimsIdentity),
+            authProperties
+        );
+    }
+
     [HttpPost("logout")]
     public async Task<IActionResult> Logout()
     {
-        await _signInManager.SignOutAsync();
-        return Ok("Logged out");
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return Ok(new { Message = "Logged out" });
     }
-    
+
     [Authorize]
     [HttpGet("profile")]
     public IActionResult GetProfile()
     {
-        var user = User.Identity.Name;
-        return Ok(new { Message = "Profile data", User = user });
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userName = User.Identity.Name;
+
+        return Ok(new { Message = "Profile data", UserId = userId, UserName = userName });
     }
 }
