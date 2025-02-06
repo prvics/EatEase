@@ -1,6 +1,7 @@
 using EatEase.Data;
 using EatEase.Service;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
@@ -63,17 +64,17 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddDefaultTokenProviders();
 
 //configure authentication cookie options
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.Cookie.HttpOnly = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Use Secure cookies
-    options.Cookie.SameSite = SameSiteMode.Strict; // Prevent CSRF
-    options.Cookie.Name = "EatEaseAuthCookie";
-    options.ExpireTimeSpan = TimeSpan.FromHours(8);
-    options.LoginPath = "/api/Account/login";
-    options.LogoutPath = "/api/Account/logout";
-    options.AccessDeniedPath = "/api/Account/accessdenied";
-});
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+    {
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always; 
+        options.Cookie.SameSite = SameSiteMode.Lax; 
+        options.Cookie.Name = "EatEaseAuthCookie";
+        options.ExpireTimeSpan = TimeSpan.FromDays(7);
+        options.LoginPath = "/api/Account/login";
+        options.LogoutPath = "/api/Account/logout";
+    });
 
 //build the app
 var app = builder.Build();

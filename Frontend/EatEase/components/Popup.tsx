@@ -1,14 +1,15 @@
 import React, { useEffect } from "react";
-import { Modal, View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { Modal, StyleSheet, TouchableOpacity } from "react-native";
 import { ThemedView } from "./ThemedView";
 import { ThemedText } from "./ThemedText";
+import { PopupMessageInterface } from "@/types/type";
 
 export default function PopupMessage({
   visible,
   duration = 6000,
   message,
   onClose,
-}) {
+}: PopupMessageInterface) {
   useEffect(() => {
     if (visible) {
       const timer = setTimeout(() => {
@@ -40,12 +41,13 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalContainer: {
-    backgroundColor: "white",
+    backgroundColor: "#a6e7bc",
     padding: 20,
     borderRadius: 10,
     elevation: 5,
   },
   message: {
+    color: "#333",
     fontSize: 16,
     fontWeight: "bold",
     textAlign: "center",

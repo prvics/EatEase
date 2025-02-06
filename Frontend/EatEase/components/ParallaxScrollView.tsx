@@ -1,18 +1,16 @@
 import { PropsWithChildren, ReactElement, useState } from "react";
-import { Alert, RefreshControl, StyleSheet } from "react-native";
+import { RefreshControl, StyleSheet } from "react-native";
 import Animated, {
   interpolate,
   useAnimatedRef,
   useAnimatedStyle,
   useScrollViewOffset,
 } from "react-native-reanimated";
-
 import { ThemedView } from "@/components/ThemedView";
 import { useBottomTabOverflow } from "@/components/ui/TabBarBackground";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
-import PopupMessage from "./Popup";
 
 const HEADER_HEIGHT = 150;
 
@@ -32,21 +30,6 @@ export default function ParallaxScrollView({
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const scrollOffset = useScrollViewOffset(scrollRef);
   const bottom = useBottomTabOverflow();
-
-  const [refreshing, setRefreshing] = useState(false);
-
-  const handleRefresh = async () => {
-    if (!onRefresh) return;
-    setRefreshing(true);
-    <PopupMessage
-      visible={true}
-      duration={0}
-      message="Hello! This will disappear in 6 seconds."
-      onClose={false}
-    />;
-    await onRefresh();
-    setRefreshing(false);
-  };
 
   const headerAnimatedStyle = useAnimatedStyle(() => {
     return {
@@ -78,9 +61,6 @@ export default function ParallaxScrollView({
           scrollEventThrottle={16}
           scrollIndicatorInsets={{ bottom }}
           contentContainerStyle={{ paddingBottom: bottom }}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-          }
         >
           <Animated.View
             style={[

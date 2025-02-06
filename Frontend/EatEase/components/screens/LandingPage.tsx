@@ -1,39 +1,28 @@
 import React, { useState } from "react";
-import { StyleSheet, TouchableOpacity, Image, Button } from "react-native";
-import { StatusBar } from "expo-status-bar";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
-
+import { StyleSheet, TouchableOpacity } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import ParallaxScrollView from "../ParallaxScrollView";
 import { ThemedText } from "../ThemedText";
 import { ThemedView } from "../ThemedView";
 import { FeatureCard } from "../FeatureCard";
 import EatEaseLogo from "../EatEaseLogo";
-import { HOST_WITH_PORT } from "@/env";
 import PopupMessage from "../Popup";
-
-const API_URL = `${HOST_WITH_PORT}/api/controller/generate-week`;
 
 export default function HomeScreen() {
   const navigation = useNavigation();
 
-  const [isPopupVisible, setPopupVisible] = useState(false);
+  const [visible, setVisible] = useState(false);
 
-  const showPopup = () => {};
-  /* const [isLoading, setIsLoading] = useState(false);
-  const [mealPlan, setMealPlan] = useState(null); */
+  const showPopup = () => {
+    setVisible(true);
+  };
+
+  const hidePopup = () => {
+    setVisible(false);
+  };
 
   const generateWeek = async () => {
-    //setIsLoading(true);
-    try {
-      //const response = await fetch(API_URL);
-      //const data = await response.json();
-      //setMealPlan(data);
-      //setIsLoading(false);
-      navigation.navigate("meal-prep");
-    } catch (error) {
-      console.error("Error generating meal plan:", error);
-      //setIsLoading(false);
-    }
+    navigation.navigate("meal-prep");
   };
 
   return (
@@ -69,9 +58,9 @@ export default function HomeScreen() {
         <TouchableOpacity style={styles.ctaButton} onPress={showPopup}>
           <ThemedText style={styles.ctaText}>PopUP</ThemedText>
           <PopupMessage
-            visible={isPopupVisible}
+            visible={visible}
             message={"hey Im a popup 6s and ill go"}
-            onClose={() => setPopupVisible(false)}
+            onClose={hidePopup}
           />
         </TouchableOpacity>
       </ThemedView>

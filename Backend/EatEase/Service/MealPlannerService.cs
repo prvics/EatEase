@@ -2,6 +2,7 @@ using EatEase.Data;
 using EatEase.Models;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace EatEase.Service;
 
 public class MealPlannerService : IMealPlannerService
@@ -45,11 +46,11 @@ public class MealPlannerService : IMealPlannerService
         return weeklyMealPlan;
     }
     
-    public async Task<MealPlan?> RerollMealAsync(string mealCategory)
+    public async Task<MealPlan?> RerollMealAsync(string day, string mealCategory, int mealId)
     {
         var randomMeal = await _context.Meals
             .Include(m => m.Ingredients)
-            .Where(m => m.Category == mealCategory)
+            .Where(m => m.Category == mealCategory && m.Id != mealId)
             .OrderBy(m => Guid.NewGuid())
             .FirstOrDefaultAsync();
 
@@ -58,18 +59,23 @@ public class MealPlannerService : IMealPlannerService
             : null;
     }
 
-    public async Task<List<MealPlan>> RerollDayAsync()
+    public async Task<List<MealPlan>> RerollDayAsync(string day, int breakfastId, int lunchId, int dinnerId)
     {
-        var mealCategories = new[] { "Breakfast", "Lunch", "Dinner" };
         var dailyMeals = new List<MealPlan>();
+        
+        var updatedBreakfast = await RerollMealAsync(day, "Breakfast", breakfastId);
+        dailyMeals.Add(updatedBreakfast);
 
-        foreach (var category in mealCategories)
+        var updatedLunch = await RerollMealAsync(day, "Lunch", lunchId);
+        dailyMeals.Add(updatedLunch);
+
+        var updatedDinner = await RerollMealAsync(day, "Dinner", dinnerId);
+        dailyMeals.Add(updatedDinner);
+
+        Console.WriteLine("dailyMeals: ");
+        foreach (var mealPlan in dailyMeals)
         {
-            var randomMeal = await RerollMealAsync(category);
-            if (randomMeal != null)
-            {
-                dailyMeals.Add(randomMeal);
-            }
+            Console.WriteLine($"Category: {mealPlan.Category}, Meal: {mealPlan.Meal.Name}");
         }
 
         return dailyMeals;

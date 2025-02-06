@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EatEase.Controllers;
 
-[Route("api/controller")]
 [ApiController]
+[Route("api/controller")]
 public class MealPlannerController : ControllerBase
 {
     private readonly IMealPlannerService _mealPlannerService;
@@ -21,22 +21,27 @@ public class MealPlannerController : ControllerBase
         return Ok(weeklyMeals);
     }
 
-    [HttpGet("reroll/{day}/{mealCategory}")]
-    public async Task<IActionResult> RerollMeal(string day, string mealCategory)
+    [HttpGet("reroll/{day}/{mealCategory}/{mealId}")]
+    public async Task<IActionResult> RerollMeal(string day, string mealCategory, int mealId)
     {
-        var rerolledMeal = await _mealPlannerService.RerollMealAsync(mealCategory);
+        var rerolledMeal = await _mealPlannerService.RerollMealAsync(day, mealCategory, mealId);
         if (rerolledMeal == null)
         {
             return NotFound($"No meals found for category '{mealCategory}'.");
         }
 
-        return Ok(new { Day = day, RerolledMeal = rerolledMeal });
+        return Ok(new { Day = day, Category = mealCategory, rerolledMeal });
     }
 
-    [HttpGet("reroll-day/{day}")]
-    public async Task<IActionResult> RerollDay(string day)
+    [HttpGet("reroll-day/{day}/{breakfastId}/{lunchId}/{dinnerId}")]
+    public async Task<IActionResult> RerollDay(string day, int breakfastId, int lunchId, int dinnerId)
     {
-        var rerolledMeals = await _mealPlannerService.RerollDayAsync();
+        if (day == null || breakfastId == null || lunchId == null || dinnerId == null)
+        {
+            return BadRequest("Can't reroll missing data");
+        }
+        
+        var rerolledMeals = await _mealPlannerService.RerollDayAsync(day, breakfastId, lunchId, dinnerId);
         return Ok(new { Day = day, Meals = rerolledMeals });
     }
 }
